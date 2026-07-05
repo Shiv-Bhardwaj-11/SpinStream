@@ -397,6 +397,8 @@ export const SlotMachine: React.FC = () => {
       
       if (!match) {
         alert("No titles match your chosen filters! Try changing genres or types, or clearing filters.");
+        isSpinningRef.current = false;
+        if (spinTimeoutRef.current) clearTimeout(spinTimeoutRef.current);
         setIsSpinning(false);
         return;
       }
