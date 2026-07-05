@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { MovieItem } from '../data/movies';
 import { fetchFromTMDB } from '../utils/tmdb';
-import { db } from '../utils/firebase';
+import { db, auth } from '../utils/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 
 export interface UserProfile {
   uid?: string;
@@ -27,6 +28,7 @@ export interface WatchedHistoryItem {
 
 export interface Friend {
   id: string;
+  uid?: string;
   name: string;
   avatar: string;
   xp: number;
@@ -299,6 +301,8 @@ export const useStore = create<AppState>((set, get) => {
         }
       });
       localStorage.removeItem('spinstream_state');
+      // Also sign out of Firebase so the auth token is fully cleared
+      signOut(auth).catch(() => {});
     },
 
     recordVisit: () => {
@@ -561,7 +565,7 @@ export const useStore = create<AppState>((set, get) => {
     },
 
     sendFriendInvite: (friendObj) => {
-      const { friends, activityFeed, user } = get();
+      const { friends, activityFeed, user, achievements, badgeNotifications } = get();
       
       const updatedFriends = [friendObj, ...friends];
       
@@ -576,9 +580,28 @@ export const useStore = create<AppState>((set, get) => {
         },
         ...activityFeed
       ];
-      
-      set({ friends: updatedFriends, activityFeed: updatedFeed });
-      saveState({ friends: updatedFriends, activityFeed: updatedFeed });
+
+      // Check ach-social (Social Butterfly) achievement
+      const newlyUnlocked: Achievement[] = [];
+      const updatedAchievements = achievements.map(ach => {
+        if (ach.unlockedAt === null && ach.id === 'ach-social') {
+          const unlockedAch = { ...ach, unlockedAt: new Date().toLocaleDateString() };
+          newlyUnlocked.push(unlockedAch);
+          return unlockedAch;
+        }
+        return ach;
+      });
+
+      set({
+        friends: updatedFriends,
+        activityFeed: updatedFeed,
+        achievements: updatedAchievements,
+        badgeNotifications: [...(badgeNotifications || []), ...newlyUnlocked]
+      });
+
+      if (newlyUnlocked.length > 0) get().addXP(newlyUnlocked[0].targetXP);
+
+      saveState({ friends: updatedFriends, activityFeed: updatedFeed, achievements: updatedAchievements });
     },
 
     acceptInvite: (inviteId) => {

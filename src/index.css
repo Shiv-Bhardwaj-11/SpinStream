@@ -343,6 +343,15 @@ input:focus, select:focus {
   animation: spin-slow 20s linear infinite;
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.15); }
   50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.4); }

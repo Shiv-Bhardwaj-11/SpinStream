@@ -311,7 +311,11 @@ export const Social = () => {
               </h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
-                {activityFeed.map(feed => (
+                {activityFeed.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '24px 0' }}>
+                    🎬 No activity yet — add friends and start watching!
+                  </p>
+                ) : activityFeed.map(feed => (
                   <div key={feed.id} style={{ display: 'flex', gap: '10px', fontSize: '0.82rem', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '1.2rem', marginTop: '2px' }}>{feed.userAvatar}</span>
                     <div style={{ flex: 1 }}>
